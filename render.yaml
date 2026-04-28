@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: cierrecaja-imprimeya
+    runtime: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: DATABASE_URL
+        sync: false          # Lo pegas manualmente en Render dashboard
+      - key: JWT_SECRET
+        generateValue: true  # Render lo genera automáticamente
+      - key: NODE_ENV
+        value: production
+    autoDeploy: true
+    plan: starter
