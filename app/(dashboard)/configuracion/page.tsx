@@ -51,15 +51,24 @@ export default function ConfiguracionPage() {
     catch { notify('Error','error'); }
   };
   const toggleMod = (id: string) => setUEdit(p => p ? { ...p, modulos: p.modulos.includes(id) ? p.modulos.filter(m=>m!==id) : [...p.modulos,id] } : p);
-  const addSvc = () => {
+  const addSvc = async () => {
     if (!ns.nombre?.trim()) return notify('Nombre requerido','error');
-    setCfg(p=>({...p,servicios:[...p.servicios,{id:Date.now(),...ns} as Servicio]}));
-    setMAddSvc(false); setNs({emoji:'📋',nombre:'',categoria:'Otros',tipo:'monto_variable',ganancia:.50,precioFijo:.50,gananciaMod:false}); notify('Servicio agregado');
+    const newSvc = { id: Date.now(), ...ns } as Servicio;
+    const updated = (prev: typeof cfg) => ({ ...prev, servicios: [...prev.servicios, newSvc] });
+    setCfg(p => { const next = updated(p); configAPI.save(next).catch(() => notify('Error al guardar','error')); return next; });
+    setMAddSvc(false);
+    setNs({emoji:'📋',nombre:'',categoria:'Otros',tipo:'monto_variable',ganancia:.50,precioFijo:.50,gananciaMod:false});
+    notify('Servicio guardado ✓');
   };
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (!eS.nombre?.trim()) return notify('Nombre requerido','error');
-    setCfg(p=>({...p,servicios:p.servicios.map(s=>s.id===eS.id?{...eS} as Servicio:s)}));
-    setMEditSvc(false); notify('Servicio actualizado');
+    setCfg(p => {
+      const next = { ...p, servicios: p.servicios.map(s => s.id === eS.id ? { ...eS } as Servicio : s) };
+      configAPI.save(next).catch(() => notify('Error al guardar','error'));
+      return next;
+    });
+    setMEditSvc(false);
+    notify('Servicio actualizado ✓');
   };
   const uploadLogo = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]; if (!f) return;
@@ -178,7 +187,7 @@ export default function ConfiguracionPage() {
               {s.gananciaMod && <div style={{ marginTop:4, display:'inline-flex', alignItems:'center', gap:3, padding:'2px 6px', background:'var(--mgl)', borderRadius:4, fontSize:9, fontWeight:700, color:'var(--mgd)' }}><i className="fas fa-pencil" style={{ fontSize:8 }}></i>Libre</div>}
               <div style={{ position:'absolute', top:5, right:5, display:'flex', gap:3 }}>
                 <button onClick={()=>{setES({...s});setMEditSvc(true);}} style={{ background:'var(--wh)', border:'1px solid var(--brd)', color:'var(--cyd)', cursor:'pointer', fontSize:9.5, padding:'3px 5px', borderRadius:5 }}><i className="fas fa-pencil"></i></button>
-                <button onClick={()=>setCfg(p=>({...p,servicios:p.servicios.filter(x=>x.id!==s.id)}))} style={{ background:'var(--wh)', border:'1px solid var(--brd)', color:'var(--red)', cursor:'pointer', fontSize:9.5, padding:'3px 5px', borderRadius:5 }}><i className="fas fa-times"></i></button>
+                <button onClick={()=>setCfg(p=>{const next={...p,servicios:p.servicios.filter(x=>x.id!==s.id)};configAPI.save(next).catch(()=>{});return next;})} style={{ background:'var(--wh)', border:'1px solid var(--brd)', color:'var(--red)', cursor:'pointer', fontSize:9.5, padding:'3px 5px', borderRadius:5 }}><i className="fas fa-times"></i></button>
               </div>
             </div>
           ))}
