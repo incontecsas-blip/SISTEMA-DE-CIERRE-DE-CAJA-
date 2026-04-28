@@ -6,7 +6,7 @@ export default api;
 
 export const authAPI = {
   login: (pin: string) => api.post('/auth/login', { pin }),
-  logout: () => api.post('/auth/logout'),
+  logout: () => api.delete('/auth/login'),
 };
 
 export const ventasAPI = {
