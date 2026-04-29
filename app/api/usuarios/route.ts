@@ -11,7 +11,7 @@ export async function GET() {
   if (!user) return authError();
   if (!isAdmin(user)) return adminError();
   try {
-    const rows = await query('SELECT id,nombre,pin,rol,modulos,activo FROM usuarios ORDER BY id');
+    const rows = await query('SELECT id,nombre,pin,rol,modulos,activo FROM usuarios WHERE activo=true ORDER BY id');
     return Response.json(rows);
   } catch {
     return apiError('Error al obtener usuarios');
