@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     if (!nombre?.trim()) return apiError('Nombre requerido', 400);
     if (!/^\d{4}$/.test(pin)) return apiError('PIN debe ser 4 dígitos', 400);
 
-    const existe = await query('SELECT id FROM usuarios WHERE pin=$1', [pin]);
+    const existe = await query('SELECT id FROM usuarios WHERE pin=$1 AND activo=true', [pin]);
     if (existe.length) return apiError('PIN ya existe', 400);
 
     const mods = rol === 'admin' ? MODS_ADMIN : (modulos ?? MODS_DEF);
