@@ -2,10 +2,12 @@ import { redirect } from 'next/navigation';
 import { getAuthUser } from '@/lib/auth';
 import { AppProvider } from '@/context/AppContext';
 import Sidebar from '@/components/layout/Sidebar';
+import type { AuthUser } from '@/types';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const user = await getAuthUser();
-  if (!user) redirect('/login');
+  const userOrNull = await getAuthUser();
+  if (!userOrNull) redirect('/login');
+  const user = userOrNull as AuthUser;
 
   return (
     <AppProvider initialUser={user}>
