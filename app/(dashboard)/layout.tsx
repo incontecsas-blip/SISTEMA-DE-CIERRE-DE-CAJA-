@@ -10,10 +10,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <AppProvider initialUser={user}>
       <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
-        <Sidebar user={user} />
-        <main style={{ flex: 1, overflowY: 'auto', padding: '18px 20px', background: 'var(--bg)', minWidth: 0 }}>
+        <div className="sidebar-desktop" style={{ display: 'flex' }}>
+          <Sidebar user={user} />
+        </div>
+        <main className="main-content" style={{ flex: 1, overflowY: 'auto', padding: '18px 20px', background: 'var(--bg)', minWidth: 0 }}>
           {children}
         </main>
+        <Sidebar user={user} mobileOnly />
       </div>
     </AppProvider>
   );

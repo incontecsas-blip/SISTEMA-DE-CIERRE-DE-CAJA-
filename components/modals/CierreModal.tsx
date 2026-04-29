@@ -65,7 +65,7 @@ export default function CierreModal({ onClose }: { onClose: () => void }) {
         <button onClick={onClose} className="btn btn-ghost btn-sm"><i className="fas fa-times"></i></button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 22 }}>
+      <div style={{ className="cierre-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 22 }}>
         {/* Conteo */}
         <div>
           <p className="lbl" style={{ marginBottom: 9 }}>Conteo Físico</p>
