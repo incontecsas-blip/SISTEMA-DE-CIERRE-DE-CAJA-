@@ -34,10 +34,11 @@ export async function POST(req: NextRequest) {
     await client.query('BEGIN');
     const { rows } = await client.query(
       `INSERT INTO cierres(id,fecha,fecha_iso,cajero,ventas,egresos,utilidad,contado,dif,
-        fondo_vuelto,a_depositar,total_depositado,saldo_pendiente,depositos_parciales,obs)
-       VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *`,
+        fondo_vuelto,a_depositar,total_depositado,saldo_pendiente,depositos_parciales,obs,denominaciones)
+       VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING *`,
       [h.id, h.fecha, h.fechaISO, h.cajero, h.ventas, h.egresos, h.utilidad,
-       h.contado, h.dif, h.fondoVuelto, h.aDepositar, 0, h.aDepositar, '[]', h.obs || null]
+       h.contado, h.dif, h.fondoVuelto, h.aDepositar, 0, h.aDepositar, '[]', h.obs || null,
+       JSON.stringify(h.denominaciones || [])]
     );
     await client.query('UPDATE ventas SET cierre_id=$1 WHERE cierre_id IS NULL', [h.id]);
     await client.query('UPDATE gastos SET cierre_id=$1 WHERE cierre_id IS NULL', [h.id]);

@@ -60,6 +60,7 @@ export interface Cierre {
   total_depositado: number;
   saldo_pendiente: number;
   depositos_parciales: DepositoParcial[];
+  denominaciones?: { v: number; q: number }[];
   obs?: string;
 }
 

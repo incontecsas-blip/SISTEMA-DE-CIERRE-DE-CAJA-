@@ -97,7 +97,16 @@ export default function CierreModal({ onClose, editCierre, onSaved }: CierreModa
 
   useEffect(() => {
     if (isEdit) {
-      if (+editCierre!.contado > 0) {
+      // Cargar denominaciones guardadas si existen
+      const saved = editCierre!.denominaciones;
+      if (saved && Array.isArray(saved) && saved.length > 0) {
+        // Restaurar exactamente las denominaciones guardadas
+        setDens(DENS.map(v => {
+          const found = saved.find((d: { v: number; q: number }) => d.v === v);
+          return { v, q: found ? found.q : 0 };
+        }));
+      } else if (+editCierre!.contado > 0) {
+        // Fallback: distribuir el contado en billetes aproximadamente
         const contado = +editCierre!.contado;
         setDens(DENS.map(v => {
           if (v === 100) return { v, q: Math.floor(contado / 100) };
@@ -139,6 +148,7 @@ export default function CierreModal({ onClose, editCierre, onSaved }: CierreModa
           ventas: stats.ventas, egresos: stats.egresos, utilidad: stats.utilidad,
           contado: totalContado, dif: parseFloat((totalContado - +editCierre!.contado).toFixed(2)),
           fondoVuelto: fondoV, aDepositar, obs,
+          denominaciones: dens,
         });
         onSaved?.(data);
         notify('Cierre actualizado ✓');
@@ -153,6 +163,7 @@ export default function CierreModal({ onClose, editCierre, onSaved }: CierreModa
           dif: parseFloat((totalContado - enCaja).toFixed(2)),
           fondoVuelto: fondoV, aDepositar,
           obs: obs || (filtroMode !== 'hoy' ? `Período: ${periodLabel()}` : undefined),
+          denominaciones: dens,
         });
         notify('Cierre registrado ✓');
       }
