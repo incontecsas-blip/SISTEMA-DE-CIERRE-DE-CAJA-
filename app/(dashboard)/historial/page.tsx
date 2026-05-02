@@ -6,7 +6,6 @@ import { DateBar, Empty, D } from '@/components/ui';
 import { inRango } from '@/lib/utils';
 import type { Cierre, DateFilter } from '@/types';
 import CierreModal from '@/components/modals/CierreModal';
-
 export default function HistorialPage() {
   const { isAdmin, notify } = useApp();
   const [cierres, setCierres] = useState<Cierre[]>([]);

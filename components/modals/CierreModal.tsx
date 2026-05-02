@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import { cierresAPI, ventasAPI, gastosAPI } from '@/lib/api';
 import api from '@/lib/api';
@@ -111,9 +111,15 @@ export default function CierreModal({ onClose, editCierre, onSaved }: CierreModa
     }
   };
 
+  const mouseDownOnOverlay = useRef(false);
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box" style={{ width: 720, padding: 26 }} onClick={e => e.stopPropagation()}>
+    <div className="modal-overlay"
+      onMouseDown={e => { mouseDownOnOverlay.current = e.target === e.currentTarget; }}
+      onMouseUp={e => { if (mouseDownOnOverlay.current && e.target === e.currentTarget) onClose(); }}
+      onClick={e => e.stopPropagation()}
+    >
+      <div className="modal-box" style={{ width: 720, padding: 26 }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>

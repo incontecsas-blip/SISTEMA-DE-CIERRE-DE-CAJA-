@@ -4,6 +4,7 @@ import { ventasAPI, configAPI } from '@/lib/api';
 import { useApp } from '@/context/AppContext';
 import { D } from '@/components/ui';
 import type { Servicio, Config } from '@/types';
+import { useModalClose } from '@/hooks/useModalClose';
 
 const METODOS_DEF = ['Efectivo', 'Transferencia', 'Zelle', 'Tarjeta'];
 
@@ -96,6 +97,9 @@ export default function POSPage() {
       setMOK(true); setTab('catalogo');
     } catch { notify('Error al procesar venta', 'error'); }
   };
+
+  const overlayPropsSvc = useModalClose(() => setMSvc(false));
+  const overlayPropsOK  = useModalClose(() => setMOK(false));
 
   // ── Bloque copias ──
   const CopiasCatalogo = () => (
@@ -319,8 +323,8 @@ export default function POSPage() {
 
       {/* ── Modal servicio ── */}
       {mSvc && svcA && (
-        <div className="modal-overlay" onClick={() => setMSvc(false)}>
-          <div className="modal-box" style={{ width: 390, padding: 24 }} onClick={e => e.stopPropagation()}>
+        <div className="modal-overlay" {...overlayPropsSvc}>
+          <div className="modal-box" style={{ width: 390, padding: 24 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
               <div style={{ fontSize: 38 }}>{svcA.emoji}</div>
               <div>
@@ -363,25 +367,19 @@ export default function POSPage() {
               {svcA.tipo === 'cantidad' && (
                 <div>
                   <label className="lbl">Cantidad{svcA.esProducto ? ' (producto)' : ''}</label>
-                  {/* Controles +/- para cantidad */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                    <button onClick={() => setSvcIn(p => ({ ...p, qty: Math.max(1, p.qty - 1) }))}
-                      style={{ width: 40, height: 40, borderRadius: 9, border: '1.5px solid var(--brd)', background: 'var(--bg)', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>−</button>
-                    <input type="number" min="1" max={svcA.esProducto && svcA.stock != null ? svcA.stock : undefined}
-                      value={svcIn.qty}
-                      onChange={e => {
-                        const v = parseInt(e.target.value) || 1;
-                        const max = svcA.esProducto && svcA.stock != null ? svcA.stock : 9999;
-                        setSvcIn(p => ({ ...p, qty: Math.min(v, max) }));
-                      }}
-                      onClick={e => (e.target as HTMLInputElement).select()}
-                      style={{ flex: 1, textAlign: 'center', border: '2px solid var(--cy)', borderRadius: 9, padding: '8px 4px', fontSize: 22, fontWeight: 800, fontFamily: 'JetBrains Mono,monospace', background: 'var(--cyl)', color: 'var(--cyd)', outline: 'none' }} />
-                    <button onClick={() => {
+                  <input
+                    type="number" min="1"
+                    max={svcA.esProducto && svcA.stock != null ? svcA.stock : undefined}
+                    value={svcIn.qty}
+                    onChange={e => {
+                      const v = parseInt(e.target.value) || 1;
                       const max = svcA.esProducto && svcA.stock != null ? svcA.stock : 9999;
-                      setSvcIn(p => ({ ...p, qty: Math.min(p.qty + 1, max) }));
+                      setSvcIn(p => ({ ...p, qty: Math.min(v, max) }));
                     }}
-                      style={{ width: 40, height: 40, borderRadius: 9, border: '1.5px solid var(--cy)', background: 'var(--cyl)', color: 'var(--cyd)', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>+</button>
-                  </div>
+                    className="inp"
+                    autoFocus
+                    style={{ fontSize: 16, fontWeight: 700, marginBottom: 7 }}
+                  />
                   <div style={{ padding: '8px 11px', background: 'var(--bg)', borderRadius: 9, border: '1px solid var(--brd)', fontSize: 12 }}>
                     <span style={{ color: 'var(--t3)' }}>Precio unitario: </span>
                     <strong className="mono">${D(svcA.precioFijo)}</strong>
@@ -415,8 +413,8 @@ export default function POSPage() {
 
       {/* ── Modal cobro exitoso ── */}
       {mOK && (
-        <div className="modal-overlay" onClick={() => setMOK(false)}>
-          <div className="modal-box" style={{ width: 320, padding: 26 }} onClick={e => e.stopPropagation()}>
+        <div className="modal-overlay" {...overlayPropsOK}>
+          <div className="modal-box" style={{ width: 320, padding: 26 }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ width: 60, height: 60, background: 'linear-gradient(135deg,var(--grn),#059669)', borderRadius: '50%', margin: '0 auto 12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <i className="fas fa-check" style={{ fontSize: 26, color: '#fff' }}></i>

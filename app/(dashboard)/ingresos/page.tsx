@@ -6,6 +6,7 @@ import { useApp } from '@/context/AppContext';
 import { DateBar, Empty, MetodoBadge, D } from '@/components/ui';
 import { inRango } from '@/lib/utils';
 import type { Venta, DateFilter } from '@/types';
+import { useModalClose } from '@/hooks/useModalClose';
 
 const METODOS = ['Efectivo', 'Transferencia', 'Zelle', 'Tarjeta'];
 
@@ -61,6 +62,8 @@ export default function IngresosPage() {
     setVentas(p => p.filter(v => v.id !== id));
     notify('Eliminado');
   };
+
+  const overlayPropsEdit = useModalClose(() => setMEdit(false));
 
   return (
     <div className="fade-in">
@@ -153,8 +156,8 @@ export default function IngresosPage() {
 
       {/* Modal editar venta */}
       {mEdit && (
-        <div className="modal-overlay" onClick={() => setMEdit(false)}>
-          <div className="modal-box" style={{ width: 480, padding: 26 }} onClick={e => e.stopPropagation()}>
+        <div className="modal-overlay" {...overlayPropsEdit}>
+          <div className="modal-box" style={{ width: 480, padding: 26 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
               <div>
                 <h2 style={{ fontSize: 17, fontWeight: 900 }}>

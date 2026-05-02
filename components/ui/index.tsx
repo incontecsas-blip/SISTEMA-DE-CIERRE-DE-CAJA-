@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, MouseEvent } from 'react';
+import { ReactNode, MouseEvent, useRef } from 'react';
 import type { DateFilter, FilterMode } from '@/types';
 import { D } from '@/lib/utils';
 
@@ -45,9 +45,16 @@ export function StatCard({ label, value, icon, color, sub, accent }: {
 
 // ── Modal ─────────────────────────────────────────────────────
 export function Modal({ children, onClose, width = 420 }: { children: ReactNode; onClose: () => void; width?: number }) {
+  const mouseDownOnOverlay = useRef(false);
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box" style={{ width, padding: 26 }} onClick={(e: MouseEvent) => e.stopPropagation()}>
+    <div
+      className="modal-overlay"
+      onMouseDown={e => { mouseDownOnOverlay.current = e.target === e.currentTarget; }}
+      onMouseUp={e => { if (mouseDownOnOverlay.current && e.target === e.currentTarget) onClose(); }}
+      onClick={e => e.stopPropagation()}
+    >
+      <div className="modal-box" style={{ width, padding: 26 }}>
         {children}
       </div>
     </div>
