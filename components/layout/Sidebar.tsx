@@ -15,7 +15,7 @@ interface SidebarProps {
 
 const ALL_NAV = [
   { id: 'dashboard', lbl: 'Dashboard',  icon: 'fas fa-gauge-high',    path: '/dashboard' },
-  { id: 'pos',       lbl: 'Venta',      icon: 'fas fa-cash-register', path: '/pos' },
+  { id: 'pos',       lbl: 'Punto de venta',      icon: 'fas fa-cash-register', path: '/pos' },
   { id: 'ingresos',  lbl: 'Ingresos',   icon: 'fas fa-arrow-up',      path: '/ingresos' },
   { id: 'egresos',   lbl: 'Egresos',    icon: 'fas fa-arrow-down',    path: '/egresos' },
   { id: 'graficas',  lbl: 'Gráficas',   icon: 'fas fa-chart-pie',     path: '/graficas' },
