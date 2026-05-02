@@ -62,12 +62,23 @@ export default function CierreModal({ onClose, editCierre, onSaved }: CierreModa
     setLoadingStats(true);
     try {
       const { desde: d, hasta: h } = getDesdeHasta(modo, desde, hasta);
+      const hoy = isoHoy();
+      const esPasado = h < hoy; // Si el período es anterior a hoy, incluir ventas ya cerradas
+
       const [vR, gR] = await Promise.all([
         ventasAPI.getAll({ desde: d, hasta: h }),
         gastosAPI.getAll({ desde: d, hasta: h }),
       ]);
-      const vT = vR.data.filter((v: { cierre_id: number }) => !v.cierre_id);
-      const gT = gR.data.filter((g: { cierre_id: number }) => !g.cierre_id);
+
+      // Para fechas pasadas: mostrar TODAS las ventas del período
+      // Para hoy: solo las que no tienen cierre (pendientes)
+      const vT = esPasado
+        ? vR.data
+        : vR.data.filter((v: { cierre_id: number }) => !v.cierre_id);
+      const gT = esPasado
+        ? gR.data
+        : gR.data.filter((g: { cierre_id: number }) => !g.cierre_id);
+
       setStats({
         ventas:    vT.reduce((a: number, v: { total: string }) => a + parseFloat(v.total), 0),
         utilidad:  vT.reduce((a: number, v: { utilidad: string }) => a + parseFloat(v.utilidad), 0),
