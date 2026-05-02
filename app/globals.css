@@ -109,3 +109,19 @@ body { background: var(--bg); color: var(--t1); font-family: 'Nunito', sans-seri
   .dmod { padding: 3px 7px; font-size: 9px; }
 }
 .bottom-nav { display: none; }
+
+/* ── INPUTS NUMÉRICOS ─────────────────────────────────────────── */
+/* Quitar flechas arriba/abajo en inputs numéricos */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+
+/* Al enfocar un input, resaltar el borde */
+input[type=number]:focus,
+input[type=text]:focus,
+input[type=tel]:focus,
+input[type=date]:focus {
+  border-color: var(--cy) !important;
+  box-shadow: 0 0 0 3px rgba(0,193,212,.12) !important;
+  background: var(--wh) !important;
+}

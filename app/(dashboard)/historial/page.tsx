@@ -5,14 +5,13 @@ import { useApp } from '@/context/AppContext';
 import { DateBar, Empty, D } from '@/components/ui';
 import { inRango } from '@/lib/utils';
 import type { Cierre, DateFilter } from '@/types';
-import api from '@/lib/api';
+import CierreModal from '@/components/modals/CierreModal';
 
 export default function HistorialPage() {
   const { isAdmin, notify } = useApp();
   const [cierres, setCierres] = useState<Cierre[]>([]);
   const [f, setF] = useState<DateFilter>({ modo: 'mes' });
-  const [mEdit, setMEdit] = useState(false);
-  const [eC, setEC] = useState<Partial<Cierre>>({});
+  const [editCierre, setEditCierre] = useState<Cierre | null>(null);
 
   const load = useCallback(async () => {
     const { data } = await cierresAPI.getAll();
@@ -49,38 +48,12 @@ export default function HistorialPage() {
     w.document.close(); w.focus(); setTimeout(() => w.print(), 300);
   };
 
-  const guardarEdicion = async () => {
-    if (!eC.id) return;
-    try {
-      const { data } = await api.put(`/cierres/${eC.id}`, {
-        ventas: eC.ventas, egresos: eC.egresos, utilidad: eC.utilidad,
-        contado: eC.contado, dif: eC.dif, fondoVuelto: eC.fondo_vuelto,
-        aDepositar: eC.a_depositar, obs: eC.obs,
-      });
-      setCierres(p => p.map(h => h.id === data.id ? data : h));
-      setMEdit(false); notify('Cierre actualizado ✓');
-    } catch { notify('Error al guardar', 'error'); }
-  };
-
   const del = async (id: number) => {
     if (!confirm('¿Eliminar este cierre?')) return;
     await cierresAPI.delete(id);
     setCierres(p => p.filter(h => h.id !== id));
     notify('Cierre eliminado');
   };
-
-  const Row = ({ label, field, color }: { label: string; field: keyof Cierre; color?: string }) => (
-    <div>
-      <label className="lbl">{label}</label>
-      <input
-        type="number" step="0.01"
-        value={String(eC[field] ?? 0)}
-        onChange={e => setEC(p => ({ ...p, [field]: +e.target.value }))}
-        className="inp mono"
-        style={{ color: color ?? 'var(--t1)', fontWeight: 700 }}
-      />
-    </div>
-  );
 
   return (
     <div className="fade-in">
@@ -123,14 +96,14 @@ export default function HistorialPage() {
                     </span>
                   </td>
                   <td>
-                    <button onClick={() => reimprimir(h)} style={{ background: 'var(--cyl)', border: '1px solid var(--cy)', color: 'var(--cyd)', cursor: 'pointer', fontSize: 11, padding: '4px 8px', borderRadius: 7, fontFamily: 'Nunito,sans-serif', fontWeight: 700 }}>
+                    <button onClick={() => reimprimir(h)} style={{ background: 'var(--cyl)', border: '1px solid var(--cy)', color: 'var(--cyd)', cursor: 'pointer', fontSize: 11, padding: '4px 8px', borderRadius: 7, fontFamily: 'Nunito,sans-serif', fontWeight: 700, whiteSpace: 'nowrap' }}>
                       <i className="fas fa-print"></i> Imprimir
                     </button>
                   </td>
                   {isAdmin && (
                     <td>
-                      <button onClick={() => { setEC({ ...h }); setMEdit(true); }} style={{ background: 'var(--ambl)', border: '1px solid var(--amb)', color: '#92400e', cursor: 'pointer', fontSize: 11, padding: '4px 8px', borderRadius: 7, fontFamily: 'Nunito,sans-serif', fontWeight: 700 }}>
-                        <i className="fas fa-pencil"></i> Editar
+                      <button onClick={() => setEditCierre(h)} style={{ background: 'var(--ambl)', border: '1px solid var(--amb)', color: '#92400e', cursor: 'pointer', fontSize: 11, padding: '4px 8px', borderRadius: 7, fontFamily: 'Nunito,sans-serif', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                        <i className="fas fa-pencil"></i> Corregir
                       </button>
                     </td>
                   )}
@@ -149,53 +122,16 @@ export default function HistorialPage() {
         </div>
       </div>
 
-      {/* Modal editar cierre */}
-      {mEdit && (
-        <div className="modal-overlay" onClick={() => setMEdit(false)}>
-          <div className="modal-box" style={{ width: 520, padding: 26 }} onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-              <div>
-                <h2 style={{ fontSize: 17, fontWeight: 900 }}>
-                  <i className="fas fa-pencil" style={{ color: 'var(--amb)', marginRight: 8 }}></i>
-                  Editar Cierre
-                </h2>
-                <p style={{ fontSize: 11, color: 'var(--t3)', marginTop: 2 }}>
-                  {eC.cajero} · {eC.fecha_iso}
-                </p>
-              </div>
-              <button onClick={() => setMEdit(false)} className="btn btn-ghost btn-sm">
-                <i className="fas fa-times"></i>
-              </button>
-            </div>
-
-            <div style={{ background: 'var(--ambl)', border: '1.5px solid var(--amb)', borderRadius: 10, padding: '9px 13px', marginBottom: 16, fontSize: 11.5, color: '#92400e', fontWeight: 700 }}>
-              <i className="fas fa-triangle-exclamation" style={{ marginRight: 6 }}></i>
-              Solo Admin puede editar cierres. Los cambios quedan en auditoría.
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
-              <Row label="Ventas ($)" field="ventas" color="var(--grn)" />
-              <Row label="Egresos ($)" field="egresos" color="var(--red)" />
-              <Row label="Utilidad ($)" field="utilidad" color="var(--cyd)" />
-              <Row label="Contado ($)" field="contado" />
-              <Row label="Diferencia ($)" field="dif" color={+eC.dif! >= 0 ? 'var(--amb)' : 'var(--red)'} />
-              <Row label="Fondo Vuelto ($)" field="fondo_vuelto" color="var(--amb)" />
-              <Row label="A Depositar ($)" field="a_depositar" color="var(--mg)" />
-            </div>
-
-            <div style={{ marginBottom: 16 }}>
-              <label className="lbl">Observaciones</label>
-              <textarea value={eC.obs ?? ''} onChange={e => setEC(p => ({ ...p, obs: e.target.value }))} className="inp" rows={2} style={{ resize: 'vertical' }} placeholder="Motivo de la corrección..." />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9 }}>
-              <button onClick={() => setMEdit(false)} className="btn btn-ghost" style={{ padding: 11 }}>Cancelar</button>
-              <button onClick={guardarEdicion} className="btn btn-cy" style={{ padding: 11 }}>
-                <i className="fas fa-save"></i> Guardar Corrección
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Abre el mismo CierreModal pero en modo edición */}
+      {editCierre && (
+        <CierreModal
+          editCierre={editCierre}
+          onClose={() => setEditCierre(null)}
+          onSaved={updated => {
+            setCierres(p => p.map(h => h.id === updated.id ? updated : h));
+            setEditCierre(null);
+          }}
+        />
       )}
     </div>
   );
