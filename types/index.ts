@@ -105,6 +105,8 @@ export interface Servicio {
   nombre: string;
   categoria: string;
   tipo: 'monto_variable' | 'cantidad';
+  esProducto?: boolean;       // true = producto con stock
+  stock?: number;             // cantidad en inventario
   ganancia?: number;
   precioFijo?: number;
   gananciaMod?: boolean;

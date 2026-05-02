@@ -1,22 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { authAPI } from '@/lib/api';
-import type { AuthUser } from '@/types';
 
-const USUARIOS_SELECTOR = [
-  { nombre: 'Administrador', rol: 'admin' },
-  { nombre: 'Cajero 1', rol: 'cajero' },
-  { nombre: 'Cajero 2', rol: 'cajero' },
-];
+interface UsuarioSelector { id: number; nombre: string; rol: string; }
 
 export default function LoginPage() {
   const router = useRouter();
-  const [sel, setSel] = useState<{ nombre: string; rol: string } | null>(null);
+  const [usuarios, setUsuarios] = useState<UsuarioSelector[]>([]);
+  const [sel, setSel] = useState<UsuarioSelector | null>(null);
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/auth/login').then(r => r.json()).then(setUsuarios).catch(() => {});
+  }, []);
 
   const tapPin = async (d: string) => {
     if (pin.length >= 4 || loading) return;
@@ -58,13 +58,23 @@ export default function LoginPage() {
         {!sel ? (
           <div className="fade-in">
             <p className="lbl" style={{ textAlign: 'center', marginBottom: 9 }}>Selecciona usuario</p>
+            {!usuarios.length && (
+              <div style={{ padding: 20, color: 'var(--t4)', fontSize: 12 }}>
+                <i className="fas fa-spinner fa-spin" style={{ marginRight: 6 }}></i>Cargando...
+              </div>
+            )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              {USUARIOS_SELECTOR.map(u => (
-                <button key={u.nombre} onClick={() => { setSel(u); setPin(''); }} className="btn btn-ghost" style={{ justifyContent: 'flex-start', padding: '9px 12px', gap: 9, borderRadius: 10 }}>
-                  <div style={{ width: 29, height: 29, borderRadius: 8, background: 'linear-gradient(135deg,var(--mg),var(--cy))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#fff', fontWeight: 800, flexShrink: 0 }}>{u.nombre.charAt(0)}</div>
+              {usuarios.map(u => (
+                <button key={u.id} onClick={() => { setSel(u); setPin(''); }} className="btn btn-ghost"
+                  style={{ justifyContent: 'flex-start', padding: '9px 12px', gap: 9, borderRadius: 10 }}>
+                  <div style={{ width: 29, height: 29, borderRadius: 8, background: 'linear-gradient(135deg,var(--mg),var(--cy))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#fff', fontWeight: 800, flexShrink: 0 }}>
+                    {u.nombre.charAt(0)}
+                  </div>
                   <div style={{ textAlign: 'left' }}>
                     <div style={{ fontWeight: 800 }}>{u.nombre}</div>
-                    <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', fontWeight: 700 }}>{u.rol}</div>
+                    <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', fontWeight: 700 }}>
+                      {u.rol === 'admin' ? '★ Administrador' : 'Cajero'}
+                    </div>
                   </div>
                 </button>
               ))}
@@ -73,26 +83,28 @@ export default function LoginPage() {
         ) : (
           <div className="fade-in">
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 14 }}>
-              <button onClick={() => { setSel(null); setPin(''); }} className="btn btn-ghost btn-sm"><i className="fas fa-chevron-left" style={{ fontSize: 10 }}></i></button>
+              <button onClick={() => { setSel(null); setPin(''); }} className="btn btn-ghost btn-sm">
+                <i className="fas fa-chevron-left" style={{ fontSize: 10 }}></i>
+              </button>
               <div style={{ flex: 1, textAlign: 'center' }}>
                 <div style={{ fontWeight: 800, fontSize: 14 }}>{sel.nombre}</div>
                 <div style={{ fontSize: 9, color: 'var(--t3)', fontWeight: 700, textTransform: 'uppercase' }}>Ingresa tu PIN</div>
               </div>
               <div style={{ width: 36 }}></div>
             </div>
+
             {/* PIN dots */}
             <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginBottom: 18 }}>
-              {[1, 2, 3, 4].map(i => (
+              {[1,2,3,4].map(i => (
                 <div key={i} className={`pin-dot ${pin.length >= i ? 'on' : ''}`}></div>
               ))}
             </div>
+
             {/* Teclado */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6, marginBottom: 6 }}>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => (
+              {[1,2,3,4,5,6,7,8,9].map(n => (
                 <button key={n} onClick={() => tapPin(String(n))} disabled={loading}
-                  style={{ padding: 12, borderRadius: 9, border: '1.5px solid var(--brd)', background: 'var(--bg)', color: 'var(--t1)', fontSize: 16, fontWeight: 800, cursor: 'pointer', fontFamily: 'JetBrains Mono,monospace', transition: 'all .13s' }}
-                  onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--cyl)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--cy)'; }}
-                  onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--bg)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--brd)'; }}>
+                  style={{ padding: 12, borderRadius: 9, border: '1.5px solid var(--brd)', background: 'var(--bg)', color: 'var(--t1)', fontSize: 16, fontWeight: 800, cursor: 'pointer', fontFamily: 'JetBrains Mono,monospace', transition: 'all .13s' }}>
                   {n}
                 </button>
               ))}
@@ -100,15 +112,20 @@ export default function LoginPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
               <div></div>
               <button onClick={() => tapPin('0')} disabled={loading}
-                style={{ padding: 12, borderRadius: 9, border: '1.5px solid var(--brd)', background: 'var(--bg)', fontSize: 16, fontWeight: 800, cursor: 'pointer', fontFamily: 'JetBrains Mono,monospace', transition: 'all .13s' }}>
+                style={{ padding: 12, borderRadius: 9, border: '1.5px solid var(--brd)', background: 'var(--bg)', fontSize: 16, fontWeight: 800, cursor: 'pointer', fontFamily: 'JetBrains Mono,monospace' }}>
                 0
               </button>
               <button onClick={() => setPin(p => p.slice(0, -1))}
-                style={{ padding: 12, borderRadius: 9, border: '1.5px solid var(--brd)', background: 'var(--bg)', color: 'var(--t3)', fontSize: 12, cursor: 'pointer', transition: 'all .13s' }}>
+                style={{ padding: 12, borderRadius: 9, border: '1.5px solid var(--brd)', background: 'var(--bg)', color: 'var(--t3)', fontSize: 12, cursor: 'pointer' }}>
                 <i className="fas fa-delete-left"></i>
               </button>
             </div>
-            {error && <p className="fade-in" style={{ color: 'var(--red)', fontSize: 12, fontWeight: 700, marginTop: 10 }}><i className="fas fa-exclamation-circle" style={{ marginRight: 4 }}></i>PIN incorrecto</p>}
+
+            {error && (
+              <p className="fade-in" style={{ color: 'var(--red)', fontSize: 12, fontWeight: 700, marginTop: 10 }}>
+                <i className="fas fa-exclamation-circle" style={{ marginRight: 4 }}></i>PIN incorrecto
+              </p>
+            )}
           </div>
         )}
       </div>
